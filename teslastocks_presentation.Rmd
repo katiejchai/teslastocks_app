@@ -1,0 +1,92 @@
+---
+title: "Tesla Stocks Shiny App Presentation"
+author: "Katie Chai"
+date: "`r Sys.Date()`"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set()
+```
+
+<style>
+pre {
+  font-size: 20px;
+  line-height: 22px;
+}
+p {
+  margin-top: -10px;
+}
+</style>
+
+## Overview
+
+<font size="5">
+'teslastocks_app' is a Shiny app that looks at Tesla's stock data from 2010 to 2020. There are four different styles of plots available: candlestick, OHLC (open high low close), line, and area.
+
+There is only one dataset used in this app: the 'TSLA.csv' file that was originally obtained from the 'Tesla stock data from 2010 to 2020' dataset on Kaggle by Timo Bozsolik. It was obtained from this [page](https://www.kaggle.com/datasets/timoboz/tesla-stock-data-from-2010-to-2020).
+
+The loading of necessary libraries is shown below:
+
+```{r, message=FALSE}
+library(shiny); library(shinythemes); library(shinyWidgets)
+library(tidyverse); library(plotly)
+```
+</font>
+
+## Data
+
+<font size="4">
+The dataset has seven variables, but only five of these are of interest in this app (Date, Open, High, Low, Close). The dataset was already in a tidy format so it did not need any cleaning, only the conversion of the Date column from character format to date format. A summary of the dataset is shown below:
+
+```{r, echo=FALSE}
+tsla <- read.csv("./data/TSLA.csv")
+tsla <- tsla %>%
+  mutate(Date=as.Date(Date, format="%Y-%m-%d"))
+```
+
+```{r, comment=""}
+summary(tsla)
+```
+</font>
+
+## Inputs and Outputs
+
+<font size="5">
+There are two inputs and one output in this app: a plot type input (using `pickerInput()`), a date range input (using `sliderInput()`), and a plotly output (using `plotlyOutput()`).
+
+The candlestick plot portion of the code for defining the output is shown below as an example:
+
+```{r, eval=FALSE}
+output$stockplot <- renderPlotly({
+  if (input$type == "Candlestick"){
+    fig <- tsla %>%
+      filter(Date >= input$daterange[1] & Date <= input$daterange[2]) %>%
+      plot_ly(type="candlestick", x=~Date,
+              open=~Open, close=~Close, high=~High, low=~Low) %>%
+      layout(xaxis=list(rangeslider=list(visible=FALSE), type="date"), 
+             yaxis=list(autorange=TRUE))
+  }
+})
+```
+</font>
+
+## Plot Example
+
+<font size="4">
+A candlestick plot corresponding to the entire range of dates is shown below as an example of the plot output.
+
+```{r, echo=FALSE, out.height="100%"}
+tsla %>%
+  plot_ly(type="candlestick", x=~Date,
+          open=~Open, close=~Close, high=~High, low=~Low) %>%
+  layout(xaxis=list(rangeslider=list(visible=FALSE), type="date"), 
+         yaxis=list(autorange=TRUE), 
+         title=paste("TSLA Stocks", min(tsla$Date), "to", max(tsla$Date)), 
+         hovermode="x") %>%
+      config(modeBarButtonsToRemove=c("zoom2d", "select2d", "lasso2d"))
+```
+</font>
+
+
+

@@ -1,0 +1,14 @@
+name: teslastocks_app
+title: teslastocks_app
+username:
+account: katiejchai
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6651810
+bundleId: 6104394
+url: https://katiejchai.shinyapps.io/teslastocks_app/
+when: 1658010354.00006
+lastSyncTime: 1658010354.00007
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: README.md|teslastocks_presentation.Rmd
