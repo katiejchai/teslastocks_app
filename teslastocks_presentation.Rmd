@@ -30,22 +30,23 @@ The loading of necessary libraries is shown below:
 
 ```{r, message=FALSE}
 library(shiny); library(shinythemes); library(shinyWidgets)
-library(tidyverse); library(plotly)
+library(tidyverse); library(plotly); library(zoo)
 ```
 </font>
 
 ## Data
 
 <font size="4">
-The dataset has seven variables, but only five of these are of interest in this app (Date, Open, High, Low, Close). The dataset was already in a tidy format so it did not need any cleaning, only the conversion of the Date column from character format to date format. A summary of the dataset is shown below:
+The original dataset has seven variables, but only five of these are of interest in this app (Date, Open, High, Low, Close). The dataset was already in a tidy format so it did not need any cleaning, only the conversion of the Date column from character format to date format. A 30-day moving average was also calculated using the `rollmean` function of the `zoo` library. A summary of the final dataset is shown below:
 
 ```{r, echo=FALSE}
 tsla <- read.csv("./data/TSLA.csv")
 tsla <- tsla %>%
-  mutate(Date=as.Date(Date, format="%Y-%m-%d"))
+  mutate(Date=as.Date(Date, format="%Y-%m-%d")) %>%
+  mutate(mvavg30 = rollmean(x=Close, k=30, aligh="right", fill=NA))
 ```
 
-```{r, comment=""}
+```{r, echo=FALSE, comment=""}
 summary(tsla)
 ```
 </font>
@@ -74,17 +75,20 @@ output$stockplot <- renderPlotly({
 ## Plot Example
 
 <font size="4">
-A candlestick plot corresponding to the entire range of dates is shown below as an example of the plot output.
+A candlestick plot (with the moving average) corresponding to the entire range of dates is shown below as an example of the plot output.
 
-```{r, echo=FALSE, out.height="100%"}
+```{r, warning=FALSE, echo=FALSE, out.height="100%"}
 tsla %>%
-  plot_ly(type="candlestick", x=~Date,
+  plot_ly(type="candlestick", x=~Date, name="TSLA",
           open=~Open, close=~Close, high=~High, low=~Low) %>%
-  layout(xaxis=list(rangeslider=list(visible=FALSE), type="date"), 
-         yaxis=list(autorange=TRUE), 
-         title=paste("TSLA Stocks", min(tsla$Date), "to", max(tsla$Date)), 
+  add_lines(x=~Date, y=~mvavg30, name="30-Day Moving Average",
+            line=list(color=toRGB("black"), width=0.5)) %>%
+  layout(title=paste("TSLA Stocks", min(tsla$Date), "to", max(tsla$Date)),
+         xaxis=list(rangeslider=list(visible=FALSE), type="date"), 
+         yaxis=list(title="", autorange=TRUE),
+         legend=list(orientation="h", x=0.5, y=1, xanchor="center", bgcolor="transparent"),
          hovermode="x") %>%
-      config(modeBarButtonsToRemove=c("zoom2d", "select2d", "lasso2d"))
+  config(modeBarButtonsToRemove=c("zoom2d", "select2d", "lasso2d"))
 ```
 </font>
 

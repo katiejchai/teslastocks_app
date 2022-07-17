@@ -4,11 +4,13 @@ library(shinythemes)
 library(shinyWidgets)
 library(tidyverse)
 library(plotly)
+library(zoo)
 
 # load and wrangle data
-tsla <- read.csv("./data/TSLA.csv")
+tsla <- read.csv("data/TSLA.csv")
 tsla <- tsla %>%
-  mutate(Date=as.Date(Date, format="%Y-%m-%d"))
+  mutate(Date=as.Date(Date, format="%Y-%m-%d")) %>%
+  mutate(mvavg30 = rollmean(x=Close, k=30, aligh="right", fill=NA))
 
 # define UI
 shinyUI(fluidPage(
@@ -31,7 +33,7 @@ shinyUI(fluidPage(
           sliderInput(
             "daterange", "Select the date range:",
             min=min(tsla$Date), max=max(tsla$Date),
-            value=c(min(tsla$Date), max(tsla$Date))
+            value=c(as.Date("2019-02-03", format="%Y-%m-%d"), max(tsla$Date))
           )
         ),
     
